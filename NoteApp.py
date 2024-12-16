@@ -69,7 +69,7 @@ class NoteApp:
         self.menu.add_cascade(label="Help", menu=help_menu)
 
         self.refresh_notes_list()  # Обновление списка заметок
-        
+
     def add_note_dialog(self, note=None):
         # Окно для создания новой заметки или редактирования существующей
         dialog = tk.Toplevel(self.root)
@@ -87,3 +87,103 @@ class NoteApp:
             # Если редактируется существующая заметка, предзаполняем поля данными
             title_entry.insert(0, note["title"])
             content_text.insert(1.0, note["content"])
+        def save():
+            # Сохранение новой заметки или изменений
+            title = title_entry.get().strip()
+            if not title:
+                # Проверка на пустое название
+                messagebox.showerror("Error", "Title cannot be empty!")
+                return
+
+            if len(title) > 50:
+                # Проверка на превышение длины названия
+                messagebox.showerror("Error", "Title cannot exceed 50 characters!")
+                return
+
+            content = content_text.get(1.0, tk.END).strip()  # Считывание содержимого заметки
+
+            if note:
+                # Обновление существующей заметки
+                note["title"] = title
+                note["content"] = content
+                self.refresh_notes_list()
+                self.display_note()
+            else:
+                # Создание новой заметки
+                new_note = {"title": title, "content": content}
+                self.notes.append(new_note)
+                self.refresh_notes_list()
+
+            self.save_notes()  # Сохранение заметок в файл
+            dialog.destroy()  # Закрытие окна
+
+        tk.Button(dialog, text="OK", command=save).pack(side=tk.LEFT)  # Кнопка подтверждения
+        tk.Button(dialog, text="Cancel", command=dialog.destroy).pack(side=tk.RIGHT)  # Кнопка отмены
+
+    def add_note(self):
+        # Обработчик для добавления новой заметки
+        self.add_note_dialog()
+
+    def edit_note(self):
+        # Обработчик для редактирования выбранной заметки
+        if self.current_note_index is None:
+            messagebox.showwarning("Warning", "No note selected!")
+            return
+        self.add_note_dialog(self.notes[self.current_note_index])
+
+    def remove_note(self):
+        # Обработчик для удаления выбранной заметки
+        if self.current_note_index is None:
+            messagebox.showwarning("Warning", "No note selected!")
+            return
+
+        note = self.notes[self.current_note_index]
+        confirm = messagebox.askyesno("Confirm", f"Do you really want to remove this note: {note['title']}?")
+        if confirm:
+            del self.notes[self.current_note_index]  # Удаление заметки из списка
+            self.current_note_index = None
+            self.refresh_notes_list()  # Обновление списка заметок
+            self.save_notes()  # Сохранение изменений
+
+    def display_note(self, event=None):
+        # Отображение содержимого выбранной заметки
+        selected = self.notes_listbox.curselection()
+        if not selected:
+            return
+        
+        index = selected[0]
+        self.current_note_index = index
+        note = self.notes[index]
+
+        self.note_title_label.config(text=f"Title: {note['title']}")  # Обновление заголовка
+        self.note_content_text.config(state=tk.NORMAL)
+        self.note_content_text.delete(1.0, tk.END)
+        self.note_content_text.insert(1.0, note["content"])  # Обновление текста заметки
+        self.note_content_text.config(state=tk.DISABLED)
+
+    def refresh_notes_list(self):
+        # Обновление списка заметок в левой панели
+        self.notes_listbox.delete(0, tk.END)
+        for note in self.notes:
+            self.notes_listbox.insert(tk.END, note["title"])
+
+    def save_notes(self):
+        # Сохранение заметок в файл
+        with open(self.notes_file, "w") as f:
+            json.dump(self.notes, f)
+
+    def load_notes(self):
+        # Загрузка заметок из файла, если он существует
+        if os.path.exists(self.notes_file):
+            with open(self.notes_file, "r") as f:
+                self.notes = json.load(f)
+
+    def show_about(self):
+        # Отображение окна "О программе"
+        messagebox.showinfo("About", "NoteApp\nVersion 1.0\nDeveloped with Python and Tkinter.")
+
+if __name__ == "__main__":
+    # Точка входа в приложение
+    root = tk.Tk()
+    app = NoteApp(root)  # Создание экземпляра приложения
+    root.mainloop()  # Запуск основного цикла приложения
