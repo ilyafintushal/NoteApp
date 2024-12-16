@@ -19,3 +19,53 @@ class NoteApp:
 
         # Настройка пользовательского интерфейса
         self.setup_ui()
+
+    def setup_ui(self):
+        # Настройка главного окна и его элементов
+        self.left_frame = tk.Frame(self.root)  # Левая панель для списка заметок
+        self.left_frame.pack(side=tk.LEFT, fill=tk.Y)
+
+        self.right_frame = tk.Frame(self.root)  # Правая панель для отображения содержимого заметок
+        self.right_frame.pack(side=tk.RIGHT, expand=True, fill=tk.BOTH)
+
+        # Список заметок
+        self.notes_listbox = tk.Listbox(self.left_frame)
+        self.notes_listbox.pack(fill=tk.BOTH, expand=True)
+        self.notes_listbox.bind("<<ListboxSelect>>", self.display_note)  # Обработчик выбора заметки
+
+        # Кнопки управления заметками
+        self.add_button = tk.Button(self.left_frame, text="Add Note", command=self.add_note)
+        self.add_button.pack(fill=tk.X)
+
+        self.edit_button = tk.Button(self.left_frame, text="Edit Note", command=self.edit_note)
+        self.edit_button.pack(fill=tk.X)
+
+        self.remove_button = tk.Button(self.left_frame, text="Remove Note", command=self.remove_note)
+        self.remove_button.pack(fill=tk.X)
+
+        # Отображение содержимого заметки
+        self.note_title_label = tk.Label(self.right_frame, text="Title:", font=("Arial", 14))
+        self.note_title_label.pack(anchor=tk.W)
+
+        self.note_content_text = tk.Text(self.right_frame, state=tk.DISABLED, wrap=tk.WORD)
+        self.note_content_text.pack(expand=True, fill=tk.BOTH)
+
+        # Меню приложения
+        self.menu = tk.Menu(self.root)
+        self.root.config(menu=self.menu)
+
+        file_menu = tk.Menu(self.menu, tearoff=0)
+        file_menu.add_command(label="Exit", command=self.root.quit)  # Пункт меню для выхода из приложения
+        self.menu.add_cascade(label="File", menu=file_menu)
+
+        edit_menu = tk.Menu(self.menu, tearoff=0)
+        edit_menu.add_command(label="Add Note", command=self.add_note)  # Создание новой заметки
+        edit_menu.add_command(label="Edit Note", command=self.edit_note)  # Редактирование текущей заметки
+        edit_menu.add_command(label="Remove Note", command=self.remove_note)  # Удаление заметки
+        self.menu.add_cascade(label="Edit", menu=edit_menu)
+
+        help_menu = tk.Menu(self.menu, tearoff=0)
+        help_menu.add_command(label="About", command=self.show_about)  # О программе
+        self.menu.add_cascade(label="Help", menu=help_menu)
+
+        self.refresh_notes_list()  # Обновление списка заметок
