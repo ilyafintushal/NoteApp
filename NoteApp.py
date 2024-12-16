@@ -69,3 +69,21 @@ class NoteApp:
         self.menu.add_cascade(label="Help", menu=help_menu)
 
         self.refresh_notes_list()  # Обновление списка заметок
+        
+    def add_note_dialog(self, note=None):
+        # Окно для создания новой заметки или редактирования существующей
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Edit Note" if note else "Add Note")
+
+        tk.Label(dialog, text="Title:").pack()  # Поле ввода названия заметки
+        title_entry = tk.Entry(dialog)
+        title_entry.pack(fill=tk.X)
+        
+        tk.Label(dialog, text="Content:").pack()  # Поле ввода содержимого заметки
+        content_text = tk.Text(dialog, height=10)
+        content_text.pack(fill=tk.BOTH, expand=True)
+
+        if note:
+            # Если редактируется существующая заметка, предзаполняем поля данными
+            title_entry.insert(0, note["title"])
+            content_text.insert(1.0, note["content"])
